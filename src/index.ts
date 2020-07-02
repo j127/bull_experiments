@@ -74,10 +74,15 @@ updateSubscriptionsQueue.process(JobType.B, async (job) => {
 
 updateSubscriptionsQueue.on("completed", (job, result) => {
     console.log(
-        `job ${chalk.white(job.id)} completed with ${chalk.magenta.bold(result)}`
+        `job ${chalk.white(job.id)} completed with ${chalk.magenta.bold(
+            result
+        )}`
     );
 });
 
 updateSubscriptionsQueue.on("failed", (job, err) => {
-    console.error(chalk.red`job ${job.id} had an error:`, err);
+    console.error(
+        chalk.red`job ${job.id} had an error: ${err}`,
+        chalk.green`attempts remaining: ${job.opts.attempts - job.attemptsMade}`
+    );
 });
