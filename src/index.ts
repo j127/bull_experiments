@@ -79,18 +79,25 @@ function createUserData(quantity: number): IPayload[] {
     }));
 }
 
-// a function to simulate doing something
+// a rough delay
+function randomDelay(ms: number) {
+    return Math.floor(Math.random() * ms) + 100;
+}
+
+// a function to simulate doing something across the network
 function sendPayload(jobType: JobType, payload: IPayload): Promise<string> {
     return new Promise((resolve, reject) => {
-        // cause some tasks to fail
-        if (flipCoin()) {
-            reject(`task of jobType ${jobType} failed`);
-        } else {
-            resolve(
-                `[type:${jobType}] ${JSON.stringify(payload.settings)} for ${
-                    payload.username
-                } <${payload.email}>`
-            );
-        }
+        setTimeout(() => {
+            // cause some tasks to fail
+            if (flipCoin()) {
+                reject(`task of jobType ${jobType} failed`);
+            } else {
+                resolve(
+                    `[type:${jobType}] ${JSON.stringify(
+                        payload.settings
+                    )} for ${payload.username} <${payload.email}>`
+                );
+            }
+        }, randomDelay(1000));
     });
 }
