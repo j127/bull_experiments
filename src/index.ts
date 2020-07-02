@@ -4,13 +4,14 @@ import * as faker from "faker";
 import chalk from "chalk";
 import _ from "lodash";
 
+// the payload for a simulated task
 interface IPayload {
     email: string;
     username: string;
     settings: object;
 }
 
-// each job can have a name
+// each job can have a name, e.g., process an `image` or a `video`
 enum JobType {
     A = "image",
     B = "video",
@@ -18,7 +19,7 @@ enum JobType {
 
 const flipCoin = (): boolean => _.sample([true, false]);
 
-// the queue
+// create the queue
 const updateSubscriptionsQueue = new Queue("updateSubscriptions", {
     redis: {
         host: "localhost",
@@ -30,46 +31,22 @@ const updateSubscriptionsQueue = new Queue("updateSubscriptions", {
     },
 });
 
-// create some random data
-const data = _.times(10, () => ({
-    email: faker.internet.email(),
-    username: faker.internet.userName(),
-    settings: { isPrettyTrue: faker.random.boolean() },
-}));
+// create data/payloads for 10 users
+const users = createUserData(10);
+// and then create jobs for them
+createJobs(users);
 
-const options = {
-    delay: 2000,
-    attempts: 3,
-};
-
-// create jobs
-const jobs = data.map(async (d) => {
-    const jobName = _.sample(JobType);
-    return await updateSubscriptionsQueue.add(jobName, d, options);
-});
-console.log(
-    chalk.yellow(`created ${jobs.length} jobs with a delay of ${options.delay}`)
-);
-
-function sendPayload(jobType: JobType, payload: IPayload) {
-    // cause some tasks to fail
-    if (flipCoin()) {
-        throw `task of jobType ${jobType} failed`;
-    } else {
-        return `[type:${jobType}] ${JSON.stringify(payload.settings)} for ${
-            payload.username
-        } <${payload.email}>`;
-    }
-}
-
-// a worker/consumer
+// a worker/consumer for JobType.A
 updateSubscriptionsQueue.process(JobType.A, async (job) => {
     return sendPayload(JobType.A, job.data);
 });
+
+// a worker/consumer for JobType.B
 updateSubscriptionsQueue.process(JobType.B, async (job) => {
     return sendPayload(JobType.B, job.data);
 });
 
+// listeners
 updateSubscriptionsQueue.on("completed", (job, result) => {
     console.log(
         `job ${chalk.white(job.id)} completed with ${chalk.magenta.bold(
@@ -89,3 +66,44 @@ updateSubscriptionsQueue.on("failed", (job, err) => {
         console.error(chalk.bgRed.black.bold`job ${job.id} permanently failed`);
     }
 });
+
+// create some random data
+function createUserData(quantity = 10) {
+    return _.times(quantity, () => ({
+        email: faker.internet.email(),
+        username: faker.internet.userName(),
+        settings: { isPrettyTrue: faker.random.boolean() },
+    }));
+}
+
+// create some jobs for the queue
+function createJobs(data: IPayload[]) {
+    const options = {
+        delay: 2000,
+        attempts: 3,
+    };
+    // create jobs
+    const jobs = data.map(async (d) => {
+        const jobName = _.sample(JobType);
+        return await updateSubscriptionsQueue.add(jobName, d, options);
+    });
+
+    console.log(
+        chalk.yellow(
+            `created ${jobs.length} jobs with a delay of ${options.delay}`
+        )
+    );
+    return jobs;
+}
+
+// a function to simulate doing something
+function sendPayload(jobType: JobType, payload: IPayload) {
+    // cause some tasks to fail
+    if (flipCoin()) {
+        throw `task of jobType ${jobType} failed`;
+    } else {
+        return `[type:${jobType}] ${JSON.stringify(payload.settings)} for ${
+            payload.username
+        } <${payload.email}>`;
+    }
+}
