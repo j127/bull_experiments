@@ -14,9 +14,7 @@ enum JobType {
     B = "B",
 }
 
-function flipCoin(): boolean {
-    return Math.floor(Math.random() * 2) > 0;
-}
+const flipCoin = (): boolean => _.sample([true, false]);
 
 const connection = {
     host: "localhost",
@@ -41,7 +39,7 @@ const data = _.times(5, () => ({
 
 const options = {
     delay: 2000,
-    attempts: 5,
+    attempts: 2, // this is set to a low number to test the logic
 };
 
 // create jobs
@@ -81,8 +79,13 @@ updateSubscriptionsQueue.on("completed", (job, result) => {
 });
 
 updateSubscriptionsQueue.on("failed", (job, err) => {
-    console.error(
-        chalk.red`job ${job.id} had an error: ${err}`,
-        chalk.green`attempts remaining: ${job.opts.attempts - job.attemptsMade}`
-    );
+    const triesRemaining = job.opts.attempts - job.attemptsMade;
+    if (triesRemaining > 0) {
+        console.error(
+            chalk.red`job ${job.id} had an error: ${err}`,
+            chalk.green`attempts remaining: ${triesRemaining}`
+        );
+    } else {
+        console.error(chalk.bgRed.black.bold`job ${job.id} permanently failed`);
+    }
 });
