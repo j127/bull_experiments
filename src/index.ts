@@ -71,7 +71,7 @@ updateSubscriptionsQueue.on("failed", (job, err) => {
 });
 
 // create some random data
-function createUserData(quantity = 10) {
+function createUserData(quantity: number): IPayload[] {
     return _.times(quantity, () => ({
         email: faker.internet.email(),
         username: faker.internet.userName(),
@@ -80,7 +80,7 @@ function createUserData(quantity = 10) {
 }
 
 // a function to simulate doing something
-function sendPayload(jobType: JobType, payload: IPayload) {
+function sendPayload(jobType: JobType, payload: IPayload): Promise<string> {
     return new Promise((resolve, reject) => {
         // cause some tasks to fail
         if (flipCoin()) {
