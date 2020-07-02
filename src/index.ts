@@ -1,3 +1,4 @@
+// docs: https://optimalbits.github.io/bull/
 import Queue from "bull";
 import * as faker from "faker";
 import chalk from "chalk";
@@ -9,29 +10,28 @@ interface IPayload {
     settings: object;
 }
 
+// each job can have a name
 enum JobType {
-    A = "A",
-    B = "B",
+    A = "image",
+    B = "video",
 }
 
 const flipCoin = (): boolean => _.sample([true, false]);
 
-const connection = {
-    host: "localhost",
-    port: 6379,
-};
-
 // the queue
 const updateSubscriptionsQueue = new Queue("updateSubscriptions", {
-    redis: connection,
+    redis: {
+        host: "localhost",
+        port: 6379,
+    },
     limiter: {
-        max: 1000,
-        duration: 5000,
+        max: 1, // max one job per
+        duration: 1000, // 1 second
     },
 });
 
 // create some random data
-const data = _.times(5, () => ({
+const data = _.times(10, () => ({
     email: faker.internet.email(),
     username: faker.internet.userName(),
     settings: { isPrettyTrue: faker.random.boolean() },
@@ -39,7 +39,7 @@ const data = _.times(5, () => ({
 
 const options = {
     delay: 2000,
-    attempts: 2, // this is set to a low number to test the logic
+    attempts: 3,
 };
 
 // create jobs
