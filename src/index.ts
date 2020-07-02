@@ -31,10 +31,13 @@ const updateSubscriptionsQueue = new Queue("updateSubscriptions", {
     },
 });
 
-// create data/payloads for 10 users
-const users = createUserData(10);
-// and then create jobs for them
-createJobs(users);
+// create jobs for 10 users
+const data = createUserData(10);
+const jobs = data.map(async (d) => {
+    const jobName = _.sample(JobType);
+    return await updateSubscriptionsQueue.add(jobName, d, { attempts: 4 });
+});
+console.log(chalk.yellow(`created ${jobs.length} jobs`));
 
 // a worker/consumer for JobType.A
 updateSubscriptionsQueue.process(JobType.A, async (job) => {
@@ -74,21 +77,6 @@ function createUserData(quantity = 10) {
         username: faker.internet.userName(),
         settings: { isPrettyTrue: faker.random.boolean() },
     }));
-}
-
-// create some jobs for the queue
-function createJobs(data: IPayload[]) {
-    const options = {
-        attempts: 4,
-    };
-    // create jobs
-    const jobs = data.map(async (d) => {
-        const jobName = _.sample(JobType);
-        return await updateSubscriptionsQueue.add(jobName, d, options);
-    });
-
-    console.log(chalk.yellow(`created ${jobs.length} jobs`));
-    return jobs;
 }
 
 // a function to simulate doing something
