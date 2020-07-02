@@ -38,12 +38,12 @@ createJobs(users);
 
 // a worker/consumer for JobType.A
 updateSubscriptionsQueue.process(JobType.A, async (job) => {
-    return sendPayload(JobType.A, job.data);
+    return await sendPayload(JobType.A, job.data);
 });
 
 // a worker/consumer for JobType.B
 updateSubscriptionsQueue.process(JobType.B, async (job) => {
-    return sendPayload(JobType.B, job.data);
+    return await sendPayload(JobType.B, job.data);
 });
 
 // listeners
@@ -79,8 +79,7 @@ function createUserData(quantity = 10) {
 // create some jobs for the queue
 function createJobs(data: IPayload[]) {
     const options = {
-        delay: 2000,
-        attempts: 3,
+        attempts: 4,
     };
     // create jobs
     const jobs = data.map(async (d) => {
@@ -88,22 +87,22 @@ function createJobs(data: IPayload[]) {
         return await updateSubscriptionsQueue.add(jobName, d, options);
     });
 
-    console.log(
-        chalk.yellow(
-            `created ${jobs.length} jobs with a delay of ${options.delay}`
-        )
-    );
+    console.log(chalk.yellow(`created ${jobs.length} jobs`));
     return jobs;
 }
 
 // a function to simulate doing something
 function sendPayload(jobType: JobType, payload: IPayload) {
-    // cause some tasks to fail
-    if (flipCoin()) {
-        throw `task of jobType ${jobType} failed`;
-    } else {
-        return `[type:${jobType}] ${JSON.stringify(payload.settings)} for ${
-            payload.username
-        } <${payload.email}>`;
-    }
+    return new Promise((resolve, reject) => {
+        // cause some tasks to fail
+        if (flipCoin()) {
+            reject(`task of jobType ${jobType} failed`);
+        } else {
+            resolve(
+                `[type:${jobType}] ${JSON.stringify(payload.settings)} for ${
+                    payload.username
+                } <${payload.email}>`
+            );
+        }
+    });
 }
