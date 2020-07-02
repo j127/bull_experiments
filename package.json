@@ -1,0 +1,21 @@
+{
+    "name": "@j127/bull_experiments",
+    "version": "0.1.0",
+    "description": "Experiments with bull",
+    "main": "index.js",
+    "scripts": {
+        "watch": "tsc -w",
+        "build": "tsc",
+        "start": "node ./dist/index.js"
+    },
+    "author": "J. Cohen <hostelmarketing@gmail.com> (https://github.com/j127)",
+    "license": "UNLICENSED",
+    "private": true,
+    "dependencies": {
+        "bull": "^3.15.0"
+    },
+    "devDependencies": {
+        "@types/bull": "^3.14.0",
+        "typescript": "^3.9.6"
+    }
+}
