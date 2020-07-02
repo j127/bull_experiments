@@ -12,10 +12,15 @@
     "license": "UNLICENSED",
     "private": true,
     "dependencies": {
-        "bull": "^3.15.0"
+        "bull": "^3.15.0",
+        "chalk": "^4.1.0",
+        "faker": "^4.1.0",
+        "lodash": "^4.17.15"
     },
     "devDependencies": {
         "@types/bull": "^3.14.0",
+        "@types/faker": "^4.1.12",
+        "@types/lodash": "^4.14.157",
         "typescript": "^3.9.6"
     }
 }
